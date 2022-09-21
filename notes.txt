@@ -1,0 +1,38 @@
+per directory configuration
+
+for a directory and all it's subdirectories
+ - enable a separate history
+ - revert to other history when outside
+ - source scripts when in a directory or subdirectory
+ - remove scripts when out of the directory or subdirectories
+ - note that history is and overwrite/revert whereas scripts are append/remove
+ 
+ use cases
+ - enter a dir with a .dircfg file
+ - enter a subdir without a .dircfg file
+ - enter a subdir with a .dircfg file
+ - enter a non-subdir without a .dircfg file 
+ - enter a non-subdir with a .dircfg file
+ 
+ implementation
+ - use PROMPT_COMMAND & HISTFILE
+ - dir config stored in .dircfg file
+ - DIRCFG env var - /home/jake/d1*/d11/d111*
+ - unset -f <function>
+ - history -a to write out the history to HISTFILE
+ - history -c to clear the history
+ - history -r to read HISTFILE into history
+  
+ 
+ PROMPT_COMMAND
+  - find new history file by looking up directory heirarchy until either
+    - root is reached and no .dircfg directories are found -> use default history file
+    - use the history file specified in the first (lowest) .dircfg file
+  - if current history file is different to new file
+    - write history to current file
+    - set history file to new history file
+    - clear and reload the history
+  - 
+  
+.dircfg
+ - function 
