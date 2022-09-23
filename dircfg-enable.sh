@@ -1,4 +1,8 @@
-ROOT_HISTFILE=$(readlink -f ~/.bash_history)
+#set -x
+
+if [ -z "$ROOT_HISTFILE" ]; then
+    ROOT_HISTFILE=$(readlink -f ~/.bash_history)
+fi
 
 function find-active-history-file() {
     path=$(pwd)
@@ -16,7 +20,7 @@ function find-active-history-file() {
 
 function find-first-history-file() {
     while read cfg; do
-        if grep '^#HISTFILE=' "$cfg" | cut -d '=' -f 2; then
+        if [ -e "$cfg" ] && grep '^#HISTFILE=' "$cfg" | cut -d '=' -f 2; then
             return 0
         fi
     done
@@ -42,7 +46,7 @@ function find-active-functions() {
     echo 'end'
 }
 
-export PROMPT_COMMAND='
+function on-command() {
     old_history=$HISTFILE
     cfgs=$(find-dirconfigs)
     new_history=$(echo "$cfgs" | find-first-history-file)
@@ -51,5 +55,7 @@ export PROMPT_COMMAND='
         export HISTFILE="$new_history"
         history -c
         history -r
-    fi
-'
+    fi    
+}
+
+export PROMPT_COMMAND='on-command'
