@@ -3,13 +3,25 @@ if [ -z "$ROOT_HISTFILE" ]; then
 fi
 
 function find-dirconfigs() {
+    i=0
+    declare -a cfgs
     path=$(pwd)
     while [ "$path" != "/" ]; do
         if [ -f "$path/.dircfg" ]; then
-            echo "$path/.dircfg"
+            cfgs[$i]="$path/.dircfg"
+            i=$(($i+1))
         fi
         path=$(dirname "$path")
     done
+    if [ "${1:-}" == '--reverse' ]; then
+        for ((j=0; j<i; j++)); do
+            echo "${cfgs[$j]}"
+        done
+    else
+        for ((j=i-1; j>=0; j--)); do
+            echo "${cfgs[$j]}"
+        done
+    fi
 }
 
 function find-first-history-file() {
@@ -45,7 +57,7 @@ function dircfg() {
     fi
     if [ "$1" == '--list' ]; then
         echo "HISTFILE=$ROOT_HISTFILE"
-        find-dirconfigs | while read cfg; do
+        find-dirconfigs -reverse | while read cfg; do
             if [ -e "$cfg" ]; then
                  grep '^#HISTFILE=' "$cfg" | sed 's/^#//g'
             fi            
