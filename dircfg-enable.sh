@@ -38,4 +38,19 @@ function on-command() {
     fi    
 }
 
+function dircfg() {
+    if [ "$#" -eq 0 ] || [ "$1" == '--help' ] || [ "$1" == '--help' ]; then
+        echo 'dircfg - create, edit and examine per-directory configs'
+        echo '  --list:  list all directory configs that are active in your current directory'
+    fi
+    if [ "$1" == '--list' ]; then
+        echo "HISTFILE=$ROOT_HISTFILE"
+        find-dirconfigs | while read cfg; do
+            if [ -e "$cfg" ]; then
+                 grep '^#HISTFILE=' "$cfg" | sed 's/^#//g'
+            fi            
+        done
+    fi
+}
+
 export PROMPT_COMMAND='on-command'

@@ -7,3 +7,7 @@ function mkfile() {
     done
     echo $file
 }
+
+function multiline() {
+    echo "$*" | grep -e '^[ ]*|' | sed 's/^[ ]*|//g'
+}
