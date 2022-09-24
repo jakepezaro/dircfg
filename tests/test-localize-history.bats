@@ -4,6 +4,7 @@ setup() {
     load "$project_dir/bats/bats-assert/load.bash"
     load "$project_dir/bats/bats-file/load.bash"
     temp=$(temp_make)
+    cd "$temp" # make sure that there are no .dircfg files in the test parent directories
 }
 
 @test "use default histfile when ROOT_HISTFILE not set" {
@@ -31,6 +32,6 @@ setup() {
     2  de f"
 }
 
-@teardown() {
+teardown() {
     temp_del "$temp"    
 }
