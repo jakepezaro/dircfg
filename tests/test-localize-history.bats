@@ -1,4 +1,5 @@
 setup() {
+    DIRCFG_DEBUG=1
     project_dir=$(dirname $(dirname "$BATS_TEST_FILENAME"))
     load "$project_dir/bats/bats-support/load.bash"
     load "$project_dir/bats/bats-assert/load.bash"
@@ -41,7 +42,7 @@ setup() {
     assert_output "    1  a"
     
     cd "$temp/a/b"
-    on-command
+    on-command --debug
     run history
     assert_output "    1  b"
     

@@ -1,4 +1,5 @@
 setup() {
+    DIRCFG_DEBUG=1
     project_dir=$(dirname $(dirname "$BATS_TEST_FILENAME"))
     load "$project_dir/bats/bats-support/load.bash"
     load "$project_dir/bats/bats-assert/load.bash"
