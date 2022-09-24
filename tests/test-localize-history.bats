@@ -20,17 +20,13 @@ setup() {
 }
 
 @test "bash history changes when switching histfiles" {
-    ROOT_HISTFILE=$(mkfile history.txt << EOF
-    abc
-    de f
-EOF)
+    ROOT_HISTFILE=$(mkfile history.txt <<< 'abc')
     history -c
     run history
     assert_output ""
     on-command
     run history
-    assert_output "    1  abc
-    2  de f"
+    assert_output "    1  abc"
 }
 
 @test 'test switching between directories' {
