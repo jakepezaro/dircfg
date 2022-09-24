@@ -50,6 +50,11 @@ function on-command() {
     old_history=$HISTFILE
     cfgs=$(find-dirconfigs)
     new_history=$(echo "$cfgs" | find-first-history-file)
+    if [ "$1" == '--debug' ]; then
+        echo "DEBUG: old_history $old_history"
+        echo "DEBUG: cfgs $cfgs"
+        echo "DEBUG: new_history $new_history"
+    fi    
     if [ "$old_history" != "$new_history" ]; then
         history -a
         export HISTFILE="$new_history"
