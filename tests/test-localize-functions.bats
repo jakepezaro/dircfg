@@ -48,6 +48,23 @@ setup() {
     refute_output --partial 'declare -f test2'
 }
 
+@test 'functions cannot be overwritten' {
+    mkfile .dircfg <<< $(multiline '
+        |function test1() {
+        |    echo test1
+        |}
+    ')
+    cfg=$(mkfile a/.dircfg <<< $(multiline '
+        |function test1() {
+        |    echo test1
+        |}
+    '))
+    cd "$temp"
+    on-command
+    cd "$temp/a"
+    run on-command
+    assert_output "WARN: function test1 in $cfg not loaded as a function with than name already exists"
+}
 
 teardown() {
     temp_del "$temp"    

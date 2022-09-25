@@ -35,4 +35,32 @@ for a directory and all it's subdirectories
   - 
   
 .dircfg
- - function 
+ - function
+ 
+ L loaded -- declare -F
+ P prev_loaded -- DIRCFG_FUNCTIONS
+ F in_file
+ 
+ 1 2 4
+ L P F | action
+ ------+--------
+ Y Y Y | nothing
+ Y Y N | unset func + remove from P
+ Y N Y | refuse to load as it looks like it will overwrite an existing function
+ N Y Y | illegal
+ Y N N | nothing
+ N Y N | illegal
+ N N Y | load func + add to P
+ N N N | nothing
+ 
+ Y Y Y | 7 | nothing
+ N N N | 0 | nothing (not going to see this anyway)
+ Y N N | 1 | nothing (not going to see this anyway)
+ 
+ N Y Y | 6 | illegal
+ N Y N | 2 | illegal
+ 
+ Y Y N | 3 | unset func + remove from P
+ Y N Y | 5 | refuse to load as it looks like it will overwrite an existing function
+ N N Y | 4 | load func + add to P
+ 
