@@ -27,6 +27,7 @@ setup() {
     run declare -F
     assert_output --partial 'declare -f test1'
     assert_output --partial 'declare -f test2'
+    assert_equal "$DIRCFG_FUNCTIONS" " test1 test2"
 }
 
 @test 'remove functions when leaving directory' {
@@ -46,10 +47,11 @@ setup() {
     run declare -F
     refute_output --partial 'declare -f test1'
     refute_output --partial 'declare -f test2'
+    assert_equal "$DIRCFG_FUNCTIONS" ""
 }
 
 @test 'functions cannot be overwritten' {
-    mkfile .dircfg <<< $(multiline '
+    mkfile test1.sh <<< $(multiline '
         |function test1() {
         |    echo test1
         |}
@@ -59,11 +61,31 @@ setup() {
         |    echo test1
         |}
     '))
-    cd "$temp"
-    on-command
+    load "$temp/test1.sh"
     cd "$temp/a"
+    unset DIRCFG_DEBUG
     run on-command
     assert_output "WARN: function test1 in $cfg not loaded as a function with than name already exists"
+    # cannot check DIRCFG_FUNCTIONS because run executes on-command in a subshell and env var changes are not visible in this shell
+}
+
+
+@test 'functions that cannot be overwritten do not go on the prev functions list' {
+    mkfile test1.sh <<< $(multiline '
+        |function test1() {
+        |    echo test1
+        |}
+    ')
+    cfg=$(mkfile a/.dircfg <<< $(multiline '
+        |function test1() {
+        |    echo test1
+        |}
+    '))
+    load "$temp/test1.sh"
+    cd "$temp/a"
+    unset DIRCFG_DEBUG
+    on-command
+    assert_equal "$DIRCFG_FUNCTIONS" ""
 }
 
 teardown() {

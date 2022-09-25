@@ -7,7 +7,7 @@ DIRCFG_LASTDIR=''
 
 function debug() {
     if [ ! -z "$DIRCFG_DEBUG" ]; then
-        while read msg; do
+        while read -r msg; do
             echo "DEBUG: $msg"
         done
     fi
@@ -55,7 +55,7 @@ function initialise-history-file() {
         export HISTFILE="$new_history"
         history -c
         history -r
-    fi    
+    fi   
 }
 
 function is_loaded() {
@@ -70,10 +70,11 @@ function is_loaded() {
 function load-functions() {
     local cfgs="$@"
     declare -A FUNCTIONS
-    local LOADED=1 # function is currently loaded 
-    local PREV=2   # function is in the previously loaded function list (DIRCFG_FUNCTIONS)
-    local FILE=4   # function is present in the cfg file (.dircfg)
-    
+    local LOADED=1     # function is currently loaded 
+    local PREV=2       # function is in the previously loaded function list (DIRCFG_FUNCTIONS)
+    local FILE=4       # function is present in the cfg file (.dircfg)
+    local OVERWRITE=8  # this function was not loaded as it would have overwritten an existing function    
+
     debug <<< "load-functions args cfgs=[$cfgs] DIRCFG_FUNCTIONS=[$DIRCFG_FUNCTIONS]"
     
     # Function state is a combination of the LOADED + PREV + FILE bits
@@ -97,21 +98,25 @@ function load-functions() {
     done
     
     # go through each dircfg, if all functions in a dircfg are 4 then source the dircfg (load the functions)
-    for cfg in "$cfgs"; do
+    for cfg in $cfgs; do
         if [ -e "$cfg" ]; then
+            debug <<< "load-functions parsing config $cfg"            
             local load_cfg='y'
             for f in $(grep -e '^function .*() {' "$cfg" | sed 's/^function \(.*\)() {$/\1/g'); do
                 FUNCTIONS["$f"]=$(("${FUNCTIONS[$f]:-0}" | $FILE | $(is_loaded "$f")))
                 debug <<< "load-functions configuring $f ${FUNCTIONS[$f]}"
-                if [ "${FUNCTIONS[$f]}" != $FILE ]; then load_cfg='n'; fi
-                if [ "${FUNCTIONS[$f]}" == $(($FILE & $LOADED)) ]; then
+                if [ "${FUNCTIONS[$f]}" == $(($FILE + $LOADED)) ]; then
+                    FUNCTIONS["$f"]=$OVERWRITE
                     echo "WARN: function $f in $cfg not loaded as a function with than name already exists"
                 fi
+                if [ "${FUNCTIONS[$f]}" != $FILE ]; then load_cfg='n'; fi
             done
             if [ "$load_cfg" == 'y' ]; then
                 debug <<< "load-functions sourcing $cfg"
                 source "$cfg"
             fi
+        else
+            debug <<< "load-functions missing config $cfg"
         fi
     done
     
@@ -124,6 +129,9 @@ function load-functions() {
             [457])
                 debug <<< "load-functions registering function $f"
                 DIRCFG_FUNCTIONS="$DIRCFG_FUNCTIONS $f"
+                ;;
+            89)
+                debug <<< "load-functions not registering function $f"
                 ;;
             3)
                 debug <<< "load-functions removing function $f"
