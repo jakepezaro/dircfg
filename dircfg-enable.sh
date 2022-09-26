@@ -184,6 +184,12 @@ function dircfg() {
                 done
             fi            
         done
+        return 0
+    fi
+    if [ "$1" == 'create' ]; then
+        local cfg="$PWD/.dircfg"
+        touch "$cfg"
+        echo "Created: $cfg"
     fi
 }
 

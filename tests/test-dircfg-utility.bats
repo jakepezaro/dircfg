@@ -91,6 +91,13 @@ setup() {
     assert_output "$expected"
 }
 
+@test 'create in empty directory' {
+    cd "$temp"
+    run dircfg create
+    assert_output "Created: $temp/.dircfg"
+    assert_file_exists "$temp/.dircfg"
+}
+
 teardown() {
     temp_del "$temp"    
 }
