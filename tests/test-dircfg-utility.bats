@@ -33,12 +33,19 @@ setup() {
 @test 'dircfg --list (1 config)' {
     ROOT_HISTFILE=$(mkfile histfile <<< '')
     active_histfile=$(mkfile active_histfile <<< '')
-    mkfile .dircfg <<< "#HISTFILE=$active_histfile"
+    cfg=$(mkfile .dircfg <<< $(multiline "
+        |#HISTFILE=$active_histfile
+        |function test1() {
+        |  echo test1
+        |}
+    "))
     on-command
     run dircfg --list
     expected=$(multiline "
         |HISTFILE=$ROOT_HISTFILE
-        |HISTFILE=$active_histfile
+        |$cfg
+        |  HISTFILE=$active_histfile
+        |  test1
     ")
     assert_output "$expected"
 }
@@ -46,16 +53,34 @@ setup() {
 @test 'dircfg --list (2 configs)' {
     ROOT_HISTFILE=$(mkfile histfile <<< '')
     parent_histfile=$(mkfile parent_histfile <<< '')
-    mkfile .dircfg <<< "#HISTFILE=$parent_histfile"
+    cfg1=$(mkfile .dircfg <<< $(multiline "
+        |#HISTFILE=$parent_histfile
+        |function test1() {
+        | echo test1
+        |}
+        |function test2() {
+        | echo test2
+        |}
+    "))
     active_histfile=$(mkfile a/active_histfile <<< '')
-    mkfile a/.dircfg <<< "#HISTFILE=$active_histfile"
+    cfg2=$(mkfile a/.dircfg <<< $(multiline "
+        |#HISTFILE=$active_histfile
+        |function test3() {
+        | echo test3
+        |}
+    "))
     cd "$temp/a"
     on-command
     run dircfg --list
     expected=$(multiline "
         |HISTFILE=$ROOT_HISTFILE
-        |HISTFILE=$parent_histfile
-        |HISTFILE=$active_histfile
+        |$cfg1
+        |  HISTFILE=$parent_histfile
+        |  test1
+        |  test2
+        |$cfg2
+        |  HISTFILE=$active_histfile
+        |  test3
     ")
     assert_output "$expected"
 }

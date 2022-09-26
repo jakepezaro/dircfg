@@ -67,6 +67,11 @@ function is_loaded() {
     fi
 }
 
+function extract_functions() {
+    cfg="$1"
+    grep -e '^function .*() {' "$cfg" | sed 's/^function \(.*\)() {$/\1/g'
+}
+
 function load-functions() {
     local cfgs="$@"
     declare -A FUNCTIONS
@@ -102,7 +107,7 @@ function load-functions() {
         if [ -e "$cfg" ]; then
             debug <<< "load-functions parsing config $cfg"            
             local load_cfg='y'
-            for f in $(grep -e '^function .*() {' "$cfg" | sed 's/^function \(.*\)() {$/\1/g'); do
+            for f in $(extract_functions "$cfg"); do
                 FUNCTIONS["$f"]=$(("${FUNCTIONS[$f]:-0}" | $FILE | $(is_loaded "$f")))
                 debug <<< "load-functions configuring $f ${FUNCTIONS[$f]}"
                 if [ "${FUNCTIONS[$f]}" == $(($FILE + $LOADED)) ]; then
@@ -165,7 +170,11 @@ function dircfg() {
         echo "HISTFILE=$ROOT_HISTFILE"
         find-dirconfigs | while read cfg; do
             if [ -e "$cfg" ]; then
-                 grep '^#HISTFILE=' "$cfg" | sed 's/^#//g'
+                echo "$cfg"
+                grep '^#HISTFILE=' "$cfg" | sed 's/^#/  /g'
+                for f in $(extract_functions "$cfg"); do
+                    echo "  $f"                
+                done
             fi            
         done
     fi
