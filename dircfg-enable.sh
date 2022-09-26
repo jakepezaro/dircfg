@@ -162,11 +162,18 @@ function on-command() {
 }
 
 function dircfg() {
-    if [ "$#" -eq 0 ] || [ "$1" == '--help' ] || [ "$1" == '--help' ]; then
-        echo 'dircfg - create, edit and examine per-directory configs'
-        echo '  --list:  list all directory configs that are active in your current directory'
+    if [ "$#" -eq 0 ] || [ "$1" == '--help' ]; then
+        echo 'Usage: dircfg [--help | <command> --help | <command> <args>]'
+        echo 'Utilities for creating, managing and inspecting per-directory configs'
+        echo ''
+        echo 'Commands'
+        echo '  list       : list all active dirconfigs and their history files and functions'
+        echo '  create     : create an empty .dircfg file in the current directory'
+        echo '  reload     : re-load all active dirconfigs'
+        echo '  deactivate : deactivate the dirconfig in the current directory'
+        return 0
     fi
-    if [ "$1" == '--list' ]; then
+    if [ "$1" == 'list' ]; then
         echo "HISTFILE=$ROOT_HISTFILE"
         find-dirconfigs | while read cfg; do
             if [ -e "$cfg" ]; then

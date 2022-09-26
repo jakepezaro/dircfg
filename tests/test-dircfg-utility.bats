@@ -12,8 +12,14 @@ setup() {
 
 @test 'dircfg --help' {
     help_string=$(multiline '
-        |dircfg - create, edit and examine per-directory configs
-        |  --list:  list all directory configs that are active in your current directory
+        |Usage: dircfg [--help | <command> --help | <command> <args>]
+        |Utilities for creating, managing and inspecting per-directory configs
+        |
+        |Commands
+        |  list       : list all active dirconfigs and their history files and functions
+        |  create     : create an empty .dircfg file in the current directory
+        |  reload     : re-load all active dirconfigs
+        |  deactivate : deactivate the dirconfig in the current directory
     ')
     run dircfg
     assert_output "$help_string"
@@ -21,16 +27,16 @@ setup() {
     assert_output "$help_string"
 }
 
-@test 'dircfg --list (no configs)' {
+@test 'dircfg list (no configs)' {
     ROOT_HISTFILE=$(mkfile histfile <<< '')
     on-command
-    run dircfg --list
+    run dircfg list
     assert_output $(multiline "
         |HISTFILE=$ROOT_HISTFILE
     ")
 }
 
-@test 'dircfg --list (1 config)' {
+@test 'dircfg list (1 config)' {
     ROOT_HISTFILE=$(mkfile histfile <<< '')
     active_histfile=$(mkfile active_histfile <<< '')
     cfg=$(mkfile .dircfg <<< $(multiline "
@@ -40,7 +46,7 @@ setup() {
         |}
     "))
     on-command
-    run dircfg --list
+    run dircfg list
     expected=$(multiline "
         |HISTFILE=$ROOT_HISTFILE
         |$cfg
@@ -50,7 +56,7 @@ setup() {
     assert_output "$expected"
 }
 
-@test 'dircfg --list (2 configs)' {
+@test 'dircfg list (2 configs)' {
     ROOT_HISTFILE=$(mkfile histfile <<< '')
     parent_histfile=$(mkfile parent_histfile <<< '')
     cfg1=$(mkfile .dircfg <<< $(multiline "
@@ -71,7 +77,7 @@ setup() {
     "))
     cd "$temp/a"
     on-command
-    run dircfg --list
+    run dircfg list
     expected=$(multiline "
         |HISTFILE=$ROOT_HISTFILE
         |$cfg1
