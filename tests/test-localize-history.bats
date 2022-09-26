@@ -30,7 +30,7 @@ setup() {
     assert_output "    1  abc"
 }
 
-@test 'test switching between directories' {
+@test 'switching between directories' {
     mkfile a/.dircfg <<< "#HISTFILE=$(mkfile a/histfile <<< 'a')"
     mkfile a/b/.dircfg <<< "#HISTFILE=$(mkfile a/b/histfile <<< 'b')"
     mkfile a/c/.dircfg <<< "#HISTFILE=$(mkfile a/c/histfile <<< 'c')"
@@ -50,6 +50,14 @@ setup() {
     on-command
     run history
     assert_output "    1  c"    
+}
+
+@test 'PROMPT_COMMAND does not overwrite' {
+    unset PROMPT_COMMAND    
+    PROMPT_COMMAND='echo hi'
+    load "$project_dir/dircfg-enable.sh"
+    assert_equal 'echo hi; on-command' "$PROMPT_COMMAND"
+    
 }
 
 teardown() {

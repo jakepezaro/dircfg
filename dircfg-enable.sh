@@ -171,4 +171,4 @@ function dircfg() {
     fi
 }
 
-export PROMPT_COMMAND='on-command'
+export PROMPT_COMMAND="$PROMPT_COMMAND; on-command"
