@@ -93,9 +93,15 @@ setup() {
 
 @test 'create in empty directory' {
     cd "$temp"
+    unset HISTFILE
+    DIRCFG_LASTDIR="$temp"
+    PWD="$temp"
     run dircfg create
-    assert_output "Created: $temp/.dircfg"
+    assert_output "Created: $temp/.dircfg with histfile: $temp/.histfile"
     assert_file_exists "$temp/.dircfg"
+    assert_file_exists "$temp/.histfile"
+    on-command
+    assert_equal "$HISTFILE" "$temp/.histfile"
 }
 
 teardown() {

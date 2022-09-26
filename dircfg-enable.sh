@@ -188,8 +188,11 @@ function dircfg() {
     fi
     if [ "$1" == 'create' ]; then
         local cfg="$PWD/.dircfg"
-        touch "$cfg"
-        echo "Created: $cfg"
+        local histfile="$PWD/.histfile"
+        touch "$histfile"
+        echo "#HISTFILE=$histfile" > "$cfg"
+        echo "Created: $cfg with histfile: $histfile"
+        unset DIRCFG_LASTDIR  # force reload
     fi
 }
 
