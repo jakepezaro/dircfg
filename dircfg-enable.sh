@@ -194,6 +194,9 @@ function dircfg() {
         echo "Created: $cfg with histfile: $histfile"
         unset DIRCFG_LASTDIR  # force reload
     fi
+    if [ "$1" == 'reload' ]; then
+        unset DIRCFG_LASTDIR  # force reload
+    fi
 }
 
 export PROMPT_COMMAND="$PROMPT_COMMAND; on-command"

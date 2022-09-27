@@ -96,12 +96,37 @@ setup() {
     unset HISTFILE
     DIRCFG_LASTDIR="$temp"
     PWD="$temp"
-    run dircfg create
-    assert_output "Created: $temp/.dircfg with histfile: $temp/.histfile"
+    dircfg create
+    # assert_output "Created: $temp/.dircfg with histfile: $temp/.histfile"
     assert_file_exists "$temp/.dircfg"
     assert_file_exists "$temp/.histfile"
     on-command
     assert_equal "$HISTFILE" "$temp/.histfile"
+}
+
+@test 'reload a new function' {
+    #setup    
+    ROOT_HISTFILE=$(mkfile .histfile <<< '')
+    touch "$temp/.dircfg"    
+    on-command
+    mkfile .dircfg <<< $(multiline "
+        |function test1() {
+        | echo test1
+        |}
+    ")
+
+    # verify that function is not loaded
+    on-command
+    run declare -F
+    refute_output --partial 'declare -f test1'
+
+    # execute reload
+    dircfg reload
+
+    # verify that function is now loaded
+    on-command
+    run declare -F
+    assert_output --partial 'declare -f test1'
 }
 
 teardown() {
