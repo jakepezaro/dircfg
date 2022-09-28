@@ -129,6 +129,40 @@ setup() {
     assert_output --partial 'declare -f test1'
 }
 
+@test 'deactive config' {
+    ROOT_HISTFILE=$(mkfile .root <<< '')
+    hist=$(mkfile .hist <<< '')
+    mkfile .dircfg <<< $(multiline "
+        |#HISTFILE=$hist
+        |function test1() {
+        | echo test1
+        |}
+    ")
+    on-command
+    run declare -F
+    assert_output --partial 'declare -f test1'
+    assert_equal "$HISTFILE" "$hist"
+
+    dircfg deactivate
+    on-command
+    run declare -F
+    refute_output --partial 'declare -f test1'
+    assert_equal "$HISTFILE" "$ROOT_HISTFILE"
+    assert_file_exists "$temp/.dircfg-inactive"        
+}
+
+@test 'deactivate fails when dircfg does not exist' {
+    assert false
+}
+
+@test 'create fails when dircfg is inactive' {
+    assert false
+}
+
+@test 'create fails when dircfg already exists' {
+    assert false
+}
+
 teardown() {
     temp_del "$temp"    
 }
