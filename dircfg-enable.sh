@@ -14,9 +14,9 @@ function debug() {
 }
 
 function dircfg_find_configs() {
-    i=0
+    local i=0
     declare -a cfgs
-    path=$(pwd)
+    local path=$(pwd)
     while [ "$path" != "/" ]; do
         if [ -f "$path/.dircfg" ]; then
             cfgs[$i]="$path/.dircfg"
@@ -45,9 +45,9 @@ function dircfg_find_active_history_file() {
 }
 
 function dircfg_initialise_history_file() {
-    cfgs="$@"
-    old_history="$HISTFILE"
-    new_history=$(echo "$cfgs" | dircfg_find_active_history_file)
+    local cfgs="$@"
+    local old_history="$HISTFILE"
+    local new_history=$(echo "$cfgs" | dircfg_find_active_history_file)
     debug <<< "dircfg_initialise_history_file old_history=$old_history cfgs=$cfgs new_history=$new_history"
     if [ "$old_history" != "$new_history" ]; then
         debug <<< "dircfg_initialise_history_file initialise HISTFILE $new_history"
@@ -153,7 +153,7 @@ function dircfg_on_command() {
     debug <<< "on-command DIRCFG_LASTDIR=$DIRCFG_LASTDIR PWD=$PWD"
     if [ "$DIRCFG_LASTDIR" != "$PWD" ]; then
         DIRCFG_LASTDIR="$PWD"
-        cfgs=$(dircfg_find_configs --reverse)
+        local cfgs=$(dircfg_find_configs --reverse)
         debug <<< "on-command configs=[$cfgs]"
         dircfg_initialise_history_file "$cfgs"
         dircfg_load_functions "$cfgs"
@@ -230,9 +230,9 @@ function dircfg_reactivate() {
 
 function dircfg() {
     if [ "$#" -eq 0 ]; then
-        arg='--help'
+        local arg='--help'
     else
-        arg=$1
+        local arg=$1
     fi
     case $arg in
         '--help')
