@@ -1,5 +1,5 @@
-if [ -z "$ROOT_HISTFILE" ]; then
-    ROOT_HISTFILE=$(readlink -f ~/.bash_history)
+if [ -z "$DIRCFG_ROOT_HISTFILE" ]; then
+    DIRCFG_ROOT_HISTFILE=$(readlink -f ~/.bash_history)
 fi
 
 DIRCFG_FUNCTIONS=''
@@ -41,7 +41,7 @@ function dircfg_find_active_history_file() {
             return 0
         fi
     done
-    echo "$ROOT_HISTFILE"
+    echo "$DIRCFG_ROOT_HISTFILE"
 }
 
 function dircfg_initialise_history_file() {
@@ -174,7 +174,7 @@ function dircfg_help() {
 }
 
 function dircfg_list() {
-    echo "HISTFILE=$ROOT_HISTFILE"
+    echo "HISTFILE=$DIRCFG_ROOT_HISTFILE"
     dircfg_find_configs | while read cfg; do
         if [ -e "$cfg" ]; then
             echo "$cfg"

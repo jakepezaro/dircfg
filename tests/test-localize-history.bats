@@ -10,18 +10,18 @@ setup() {
     load "$project_dir/dircfg-enable.sh"
 }
 
-@test "use default histfile when ROOT_HISTFILE not set" {
-    assert_equal "$(readlink -f ~/.bash_history)" "$ROOT_HISTFILE"
+@test "use default histfile when DIRCFG_ROOT_HISTFILE not set" {
+    assert_equal "$(readlink -f ~/.bash_history)" "$DIRCFG_ROOT_HISTFILE"
 }
 
-@test "default histfile not used when ROOT_HISTFILE is set" {
-    unset ROOT_HISTFILE
-    ROOT_HISTFILE=/some/file.txt
-    assert_equal "/some/file.txt" "$ROOT_HISTFILE"
+@test "default histfile not used when DIRCFG_ROOT_HISTFILE is set" {
+    unset DIRCFG_ROOT_HISTFILE
+    DIRCFG_ROOT_HISTFILE=/some/file.txt
+    assert_equal "/some/file.txt" "$DIRCFG_ROOT_HISTFILE"
 }
 
 @test "bash history changes when switching histfiles" {
-    ROOT_HISTFILE=$(mkfile history.txt <<< 'abc')
+    DIRCFG_ROOT_HISTFILE=$(mkfile history.txt <<< 'abc')
     history -c
     run history
     assert_output ""

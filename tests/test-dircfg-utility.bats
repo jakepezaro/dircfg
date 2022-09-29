@@ -29,16 +29,16 @@ setup() {
 }
 
 @test 'dircfg list (no configs)' {
-    ROOT_HISTFILE=$(mkfile histfile <<< '')
+    DIRCFG_ROOT_HISTFILE=$(mkfile histfile <<< '')
     dircfg_on_command
     run dircfg list
     assert_output $(multiline "
-        |HISTFILE=$ROOT_HISTFILE
+        |HISTFILE=$DIRCFG_ROOT_HISTFILE
     ")
 }
 
 @test 'dircfg list (1 config)' {
-    ROOT_HISTFILE=$(mkfile histfile <<< '')
+    DIRCFG_ROOT_HISTFILE=$(mkfile histfile <<< '')
     active_histfile=$(mkfile active_histfile <<< '')
     cfg=$(mkfile .dircfg <<< $(multiline "
         |#HISTFILE=$active_histfile
@@ -49,7 +49,7 @@ setup() {
     dircfg_on_command
     run dircfg list
     expected=$(multiline "
-        |HISTFILE=$ROOT_HISTFILE
+        |HISTFILE=$DIRCFG_ROOT_HISTFILE
         |$cfg
         |  HISTFILE=$active_histfile
         |  test1
@@ -58,7 +58,7 @@ setup() {
 }
 
 @test 'dircfg list (2 configs)' {
-    ROOT_HISTFILE=$(mkfile histfile <<< '')
+    DIRCFG_ROOT_HISTFILE=$(mkfile histfile <<< '')
     parent_histfile=$(mkfile parent_histfile <<< '')
     cfg1=$(mkfile .dircfg <<< $(multiline "
         |#HISTFILE=$parent_histfile
@@ -80,7 +80,7 @@ setup() {
     dircfg_on_command
     run dircfg list
     expected=$(multiline "
-        |HISTFILE=$ROOT_HISTFILE
+        |HISTFILE=$DIRCFG_ROOT_HISTFILE
         |$cfg1
         |  HISTFILE=$parent_histfile
         |  test1
@@ -107,7 +107,7 @@ setup() {
 
 @test 'reload a new function' {
     #setup    
-    ROOT_HISTFILE=$(mkfile .histfile <<< '')
+    DIRCFG_ROOT_HISTFILE=$(mkfile .histfile <<< '')
     touch "$temp/.dircfg"    
     dircfg_on_command
     mkfile .dircfg <<< $(multiline "
@@ -131,7 +131,7 @@ setup() {
 }
 
 @test 'deactivate config' {
-    ROOT_HISTFILE=$(mkfile .root <<< '')
+    DIRCFG_ROOT_HISTFILE=$(mkfile .root <<< '')
     hist=$(mkfile .hist <<< '')
     mkfile .dircfg <<< $(multiline "
         |#HISTFILE=$hist
@@ -148,7 +148,7 @@ setup() {
     dircfg_on_command
     run declare -F
     refute_output --partial 'declare -f test1'
-    assert_equal "$HISTFILE" "$ROOT_HISTFILE"
+    assert_equal "$HISTFILE" "$DIRCFG_ROOT_HISTFILE"
     assert_file_exists "$temp/.dircfg-inactive"        
 }
 
@@ -176,7 +176,7 @@ setup() {
 }
 
 @test 'reactive config' {
-    ROOT_HISTFILE=$(mkfile .root <<< '')
+    DIRCFG_ROOT_HISTFILE=$(mkfile .root <<< '')
     hist=$(mkfile .hist <<< '')
     mkfile .dircfg-inactive <<< $(multiline "
         |#HISTFILE=$hist
