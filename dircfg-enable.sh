@@ -191,19 +191,31 @@ function dircfg() {
             done
             ;;
         'create')
-            local cfg="$PWD/.dircfg"
-            local histfile="$PWD/.histfile"
-            touch "$histfile"
-            echo "#HISTFILE=$histfile" > "$cfg"
-            echo "Created: $cfg with histfile: $histfile"
-            unset DIRCFG_LASTDIR  # force reload
+            if [ -e "$PWD/.dircfg-inactive" ]; then
+                echo "ERROR: found inactivated config $PWD/.dircfg-inactive, try 'dircfg reactivate' instead"            
+            elif [ -e "$PWD/.dircfg" ]; then
+                echo "WARN: config already exists $PWD/.dircfg"
+            else
+                local cfg="$PWD/.dircfg"
+                local histfile="$PWD/.histfile"
+                touch "$histfile"
+                echo "#HISTFILE=$histfile" > "$cfg"
+                echo "Created: $cfg with histfile: $histfile"
+                unset DIRCFG_LASTDIR  # force reload
+            fi
             ;;
         'reload')
             unset DIRCFG_LASTDIR  # force reload
             ;;
         'deactivate')
-            mv "$PWD/.dircfg" "$PWD/.dircfg-inactive"
-            unset DIRCFG_LASTDIR  # force reload
+            if [ -e "$PWD/.dircfg-inactive" ]; then
+                echo "WARN: config already inactivated $PWD/.dircfg-inactive"    
+            elif [ ! -e "$PWD/.dircfg" ]; then
+                echo "ERROR: no config present in $PWD, try 'dircfg list' instead"                
+            else                
+                mv "$PWD/.dircfg" "$PWD/.dircfg-inactive"
+                unset DIRCFG_LASTDIR  # force reload            
+            fi
         ;;
     esac
 }

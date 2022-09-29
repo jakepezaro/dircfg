@@ -129,7 +129,7 @@ setup() {
     assert_output --partial 'declare -f test1'
 }
 
-@test 'deactive config' {
+@test 'deactivate config' {
     ROOT_HISTFILE=$(mkfile .root <<< '')
     hist=$(mkfile .hist <<< '')
     mkfile .dircfg <<< $(multiline "
@@ -151,16 +151,27 @@ setup() {
     assert_file_exists "$temp/.dircfg-inactive"        
 }
 
+@test 'deactivate warns when dircfg already inactive' {
+    mkfile .dircfg-inactive <<< ''
+    run dircfg deactivate
+    assert_output "WARN: config already inactivated $temp/.dircfg-inactive"
+}
+
 @test 'deactivate fails when dircfg does not exist' {
-    assert false
+    run dircfg deactivate
+    assert_output "ERROR: no config present in $temp, try 'dircfg list' instead"    
 }
 
 @test 'create fails when dircfg is inactive' {
-    assert false
+    mkfile .dircfg-inactive <<< ''
+    run dircfg create
+    assert_output "ERROR: found inactivated config $temp/.dircfg-inactive, try 'dircfg reactivate' instead"
 }
 
-@test 'create fails when dircfg already exists' {
-    assert false
+@test 'create warns when dircfg already exists' {
+    mkfile .dircfg <<< ''
+    run dircfg create
+    assert_output "WARN: config already exists $temp/.dircfg"
 }
 
 teardown() {
