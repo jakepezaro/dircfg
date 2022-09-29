@@ -252,4 +252,4 @@ function dircfg() {
     esac
 }
 
-export PROMPT_COMMAND="$PROMPT_COMMAND; dircfg_on_command"
+export PROMPT_COMMAND=$(echo "$PROMPT_COMMAND; dircfg_on_command" | sed 's/^; //g')
