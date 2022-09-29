@@ -58,7 +58,7 @@ function dircfg_initialise_history_file() {
     fi   
 }
 
-function is_loaded() {
+function dircfg_is_loaded() {
     #return declare -F | grep -q "^declare -f $1$"
     if declare -F | grep -q "^declare -f $1$"; then
         echo 1
@@ -67,12 +67,12 @@ function is_loaded() {
     fi
 }
 
-function extract_functions() {
+function dircfg_extract_functions() {
     cfg="$1"
     grep -e '^function .*() {' "$cfg" | sed 's/^function \(.*\)() {$/\1/g'
 }
 
-function load-functions() {
+function dircfg_load_functions() {
     local cfgs="$@"
     declare -A FUNCTIONS
     local LOADED=1     # function is currently loaded 
@@ -80,7 +80,7 @@ function load-functions() {
     local FILE=4       # function is present in the cfg file (.dircfg)
     local OVERWRITE=8  # this function was not loaded as it would have overwritten an existing function    
 
-    debug <<< "load-functions args cfgs=[$cfgs] DIRCFG_FUNCTIONS=[$DIRCFG_FUNCTIONS]"
+    debug <<< "dircfg_load_functions args cfgs=[$cfgs] DIRCFG_FUNCTIONS=[$DIRCFG_FUNCTIONS]"
     
     # Function state is a combination of the LOADED + PREV + FILE bits
     #
@@ -98,18 +98,18 @@ function load-functions() {
 
     # check the previously loaded function list
     for f in $DIRCFG_FUNCTIONS; do
-        FUNCTIONS["$f"]=$(($PREV | $(is_loaded "$f")))
-        debug <<< "load-functions initialise '$f' ${FUNCTIONS[$f]}"
+        FUNCTIONS["$f"]=$(($PREV | $(dircfg_is_loaded "$f")))
+        debug <<< "dircfg_load_functions initialise '$f' ${FUNCTIONS[$f]}"
     done
     
     # go through each dircfg, if all functions in a dircfg are 4 then source the dircfg (load the functions)
     for cfg in $cfgs; do
         if [ -e "$cfg" ]; then
-            debug <<< "load-functions parsing config $cfg"            
+            debug <<< "dircfg_load_functions parsing config $cfg"            
             local load_cfg='y'
-            for f in $(extract_functions "$cfg"); do
-                FUNCTIONS["$f"]=$(("${FUNCTIONS[$f]:-0}" | $FILE | $(is_loaded "$f")))
-                debug <<< "load-functions configuring '$f' ${FUNCTIONS[$f]}"
+            for f in $(dircfg_extract_functions "$cfg"); do
+                FUNCTIONS["$f"]=$(("${FUNCTIONS[$f]:-0}" | $FILE | $(dircfg_is_loaded "$f")))
+                debug <<< "dircfg_load_functions configuring '$f' ${FUNCTIONS[$f]}"
                 if [ "${FUNCTIONS[$f]}" == $(($FILE + $LOADED)) ]; then
                     FUNCTIONS["$f"]=$OVERWRITE
                     echo "WARN: function '$f' in $cfg not loaded as a function with than name already exists"
@@ -117,33 +117,33 @@ function load-functions() {
                 if [ "${FUNCTIONS[$f]}" != $FILE ]; then load_cfg='n'; fi
             done
             if [ "$load_cfg" == 'y' ]; then
-                debug <<< "load-functions sourcing $cfg"
+                debug <<< "dircfg_load_functions sourcing $cfg"
                 source "$cfg"
             fi
         else
-            debug <<< "load-functions missing config $cfg"
+            debug <<< "dircfg_load_functions missing config $cfg"
         fi
     done
     
     # check the post-load function state, remove un-necessary functions and create the new previously loaded function list
     unset DIRCFG_FUNCTIONS
     for f in ${!FUNCTIONS[@]}; do
-        FUNCTIONS["$f"]=$(("${FUNCTIONS[$f]}" | $(is_loaded "$f")))
-        debug <<< "load-functions finalizing '$f' ${FUNCTIONS[$f]}"
+        FUNCTIONS["$f"]=$(("${FUNCTIONS[$f]}" | $(dircfg_is_loaded "$f")))
+        debug <<< "dircfg_load_functions finalizing '$f' ${FUNCTIONS[$f]}"
         case "${FUNCTIONS[$f]}" in
             [457])
-                debug <<< "load-functions registering function '$f'"
+                debug <<< "dircfg_load_functions registering function '$f'"
                 DIRCFG_FUNCTIONS=$(echo "$DIRCFG_FUNCTIONS $f" | sed 's/^ //g')
                 ;;
             89)
-                debug <<< "load-functions not registering function '$f'"
+                debug <<< "dircfg_load_functions not registering function '$f'"
                 ;;
             [32])
-                debug <<< "load-functions removing function '$f'"
+                debug <<< "dircfg_load_functions removing function '$f'"
                 unset "$f"
                 ;;
             *)
-                debug <<< "load-functions function '$f' has an illegal state ${FUNCTIONS[$f]}"
+                debug <<< "dircfg_load_functions function '$f' has an illegal state ${FUNCTIONS[$f]}"
         esac
     done
     unset FUNCTIONS
@@ -156,7 +156,7 @@ function dircfg_on_command() {
         cfgs=$(dircfg_find_configs --reverse)
         debug <<< "on-command configs=[$cfgs]"
         dircfg_initialise_history_file "$cfgs"
-        load-functions "$cfgs"
+        dircfg_load_functions "$cfgs"
     fi
     debug <<< '-------------------------------------------------'
 }
@@ -179,7 +179,7 @@ function dircfg_list() {
         if [ -e "$cfg" ]; then
             echo "$cfg"
             grep '^#HISTFILE=' "$cfg" | sed 's/^#/  /g'
-            for f in $(extract_functions "$cfg"); do
+            for f in $(dircfg_extract_functions "$cfg"); do
                 echo "  $f"                
             done
         fi            
