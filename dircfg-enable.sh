@@ -8,7 +8,7 @@ DIRCFG_LASTDIR=''
 function debug() {
     if [ ! -z "$DIRCFG_DEBUG" ]; then
         while read -r msg; do
-            echo "DEBUG: $msg"
+            echo "DEBUG: $msg" 1>&2
         done
     fi
 }
@@ -24,33 +24,29 @@ function dircfg_find_configs() {
         fi
         path=$(dirname "$path")
     done
-    if [ "${1:-}" == '--reverse' ]; then
-        for ((j=0; j<i; j++)); do
-            echo "${cfgs[$j]}"
-        done
-    else
-        for ((j=i-1; j>=0; j--)); do
-            echo "${cfgs[$j]}"
-        done
-    fi
+    # reverse the list so the root is first and current dir is last
+    for ((j=i-1; j>=0; j--)); do
+        echo "${cfgs[$j]}"
+    done
 }
 
 function dircfg_find_active_history_file() {
+    local last_history_file="$DIRCFG_ROOT_HISTFILE"
     while read cfg; do
-        if [ -e "$cfg" ] && grep '^#HISTFILE=' "$cfg" | cut -d '=' -f 2; then
-            return 0
+        if [ -e "$cfg" ] && grep -q '^#HISTFILE=' "$cfg"; then
+            last_history_file=$(grep '^#HISTFILE=' "$cfg" | cut -d '=' -f 2)
         fi
     done
-    echo "$DIRCFG_ROOT_HISTFILE"
+    echo "$last_history_file"
 }
 
 function dircfg_initialise_history_file() {
     local cfgs="$@"
     local old_history="$HISTFILE"
     local new_history=$(echo "$cfgs" | dircfg_find_active_history_file)
-    debug <<< "dircfg_initialise_history_file old_history=$old_history cfgs=$cfgs new_history=$new_history"
+    debug <<< "initialise_history_file old=$old_history new=$new_history cfgs=[$cfgs]"
     if [ "$old_history" != "$new_history" ]; then
-        debug <<< "dircfg_initialise_history_file initialise HISTFILE $new_history"
+        debug <<< "initialise_history_file HISTFILE $new_history"
         history -a
         export HISTFILE="$new_history"
         history -c
@@ -80,7 +76,7 @@ function dircfg_load_functions() {
     local FILE=4       # function is present in the cfg file (.dircfg)
     local OVERWRITE=8  # this function was not loaded as it would have overwritten an existing function    
 
-    debug <<< "dircfg_load_functions args cfgs=[$cfgs] DIRCFG_FUNCTIONS=[$DIRCFG_FUNCTIONS]"
+    debug <<< "load_functions args cfgs=[$cfgs] DIRCFG_FUNCTIONS=[$DIRCFG_FUNCTIONS]"
     
     # Function state is a combination of the LOADED + PREV + FILE bits
     #
@@ -99,17 +95,17 @@ function dircfg_load_functions() {
     # check the previously loaded function list
     for f in $DIRCFG_FUNCTIONS; do
         FUNCTIONS["$f"]=$(($PREV | $(dircfg_is_loaded "$f")))
-        debug <<< "dircfg_load_functions initialise '$f' ${FUNCTIONS[$f]}"
+        debug <<< "load_functions initialise '$f' ${FUNCTIONS[$f]}"
     done
     
     # go through each dircfg, if all functions in a dircfg are 4 then source the dircfg (load the functions)
     for cfg in $cfgs; do
         if [ -e "$cfg" ]; then
-            debug <<< "dircfg_load_functions parsing config $cfg"            
+            debug <<< "load_functions parsing config $cfg"            
             local load_cfg='y'
             for f in $(dircfg_extract_functions "$cfg"); do
                 FUNCTIONS["$f"]=$(("${FUNCTIONS[$f]:-0}" | $FILE | $(dircfg_is_loaded "$f")))
-                debug <<< "dircfg_load_functions configuring '$f' ${FUNCTIONS[$f]}"
+                debug <<< "load_functions configuring '$f' ${FUNCTIONS[$f]}"
                 if [ "${FUNCTIONS[$f]}" == $(($FILE + $LOADED)) ]; then
                     FUNCTIONS["$f"]=$OVERWRITE
                     echo "WARN: function '$f' in $cfg not loaded as a function with than name already exists"
@@ -117,11 +113,11 @@ function dircfg_load_functions() {
                 if [ "${FUNCTIONS[$f]}" != $FILE ]; then load_cfg='n'; fi
             done
             if [ "$load_cfg" == 'y' ]; then
-                debug <<< "dircfg_load_functions sourcing $cfg"
+                debug <<< "load_functions sourcing $cfg"
                 source "$cfg"
             fi
         else
-            debug <<< "dircfg_load_functions missing config $cfg"
+            debug <<< "load_functions missing config $cfg"
         fi
     done
     
@@ -129,32 +125,32 @@ function dircfg_load_functions() {
     unset DIRCFG_FUNCTIONS
     for f in ${!FUNCTIONS[@]}; do
         FUNCTIONS["$f"]=$(("${FUNCTIONS[$f]}" | $(dircfg_is_loaded "$f")))
-        debug <<< "dircfg_load_functions finalizing '$f' ${FUNCTIONS[$f]}"
+        debug <<< "load_functions finalizing '$f' ${FUNCTIONS[$f]}"
         case "${FUNCTIONS[$f]}" in
             [457])
-                debug <<< "dircfg_load_functions registering function '$f'"
+                debug <<< "load_functions registering function '$f'"
                 DIRCFG_FUNCTIONS=$(echo "$DIRCFG_FUNCTIONS $f" | sed 's/^ //g')
                 ;;
             89)
-                debug <<< "dircfg_load_functions not registering function '$f'"
+                debug <<< "load_functions not registering function '$f'"
                 ;;
             [32])
-                debug <<< "dircfg_load_functions removing function '$f'"
+                debug <<< "load_functions removing function '$f'"
                 unset "$f"
                 ;;
             *)
-                debug <<< "dircfg_load_functions function '$f' has an illegal state ${FUNCTIONS[$f]}"
+                debug <<< "load_functions function '$f' has an illegal state ${FUNCTIONS[$f]}"
         esac
     done
     unset FUNCTIONS
 }
 
 function dircfg_on_command() {
-    debug <<< "on-command DIRCFG_LASTDIR=$DIRCFG_LASTDIR PWD=$PWD"
+    debug <<< "on_command LAST=$DIRCFG_LASTDIR PWD=$PWD"
     if [ "$DIRCFG_LASTDIR" != "$PWD" ]; then
         DIRCFG_LASTDIR="$PWD"
-        local cfgs=$(dircfg_find_configs --reverse)
-        debug <<< "on-command configs=[$cfgs]"
+        local cfgs=$(dircfg_find_configs)
+        debug <<< "on_command configs=[$cfgs]"
         dircfg_initialise_history_file "$cfgs"
         dircfg_load_functions "$cfgs"
     fi
