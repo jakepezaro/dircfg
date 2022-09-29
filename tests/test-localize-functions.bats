@@ -23,7 +23,7 @@ setup() {
     refute_output --partial 'declare -f test1'
     refute_output --partial 'declare -f test2'
     cd "$temp"
-    on-command
+    dircfg_on_command
     run declare -F
     assert_output --partial 'declare -f test1'
     assert_output --partial 'declare -f test2'
@@ -41,9 +41,9 @@ setup() {
     ')
     mkfile b/.dircfg <<< ''
     cd "$temp/a"
-    on-command
+    dircfg_on_command
     cd "$temp/b"
-    on-command    
+    dircfg_on_command    
     run declare -F
     refute_output --partial 'declare -f test1'
     refute_output --partial 'declare -f test2'
@@ -64,9 +64,9 @@ setup() {
     load "$temp/test1.sh"
     cd "$temp/a"
     unset DIRCFG_DEBUG
-    run on-command
+    run dircfg_on_command
     assert_output "WARN: function 'test1' in $cfg not loaded as a function with than name already exists"
-    # cannot check DIRCFG_FUNCTIONS because run executes on-command in a subshell and env var changes are not visible in this shell
+    # cannot check DIRCFG_FUNCTIONS because run executes dircfg_on_command in a subshell and env var changes are not visible in this shell
 }
 
 
@@ -84,7 +84,7 @@ setup() {
     load "$temp/test1.sh"
     cd "$temp/a"
     unset DIRCFG_DEBUG
-    on-command
+    dircfg_on_command
     assert_equal "$DIRCFG_FUNCTIONS" ""
 }
 

@@ -30,7 +30,7 @@ setup() {
 
 @test 'dircfg list (no configs)' {
     ROOT_HISTFILE=$(mkfile histfile <<< '')
-    on-command
+    dircfg_on_command
     run dircfg list
     assert_output $(multiline "
         |HISTFILE=$ROOT_HISTFILE
@@ -46,7 +46,7 @@ setup() {
         |  echo test1
         |}
     "))
-    on-command
+    dircfg_on_command
     run dircfg list
     expected=$(multiline "
         |HISTFILE=$ROOT_HISTFILE
@@ -77,7 +77,7 @@ setup() {
         |}
     "))
     cd "$temp/a"
-    on-command
+    dircfg_on_command
     run dircfg list
     expected=$(multiline "
         |HISTFILE=$ROOT_HISTFILE
@@ -101,7 +101,7 @@ setup() {
     # assert_output "Created: $temp/.dircfg with histfile: $temp/.histfile"
     assert_file_exists "$temp/.dircfg"
     assert_file_exists "$temp/.histfile"
-    on-command
+    dircfg_on_command
     assert_equal "$HISTFILE" "$temp/.histfile"
 }
 
@@ -109,7 +109,7 @@ setup() {
     #setup    
     ROOT_HISTFILE=$(mkfile .histfile <<< '')
     touch "$temp/.dircfg"    
-    on-command
+    dircfg_on_command
     mkfile .dircfg <<< $(multiline "
         |function test1() {
         | echo test1
@@ -117,7 +117,7 @@ setup() {
     ")
 
     # verify that function is not loaded
-    on-command
+    dircfg_on_command
     run declare -F
     refute_output --partial 'declare -f test1'
 
@@ -125,7 +125,7 @@ setup() {
     dircfg reload
 
     # verify that function is now loaded
-    on-command
+    dircfg_on_command
     run declare -F
     assert_output --partial 'declare -f test1'
 }
@@ -139,13 +139,13 @@ setup() {
         | echo test1
         |}
     ")
-    on-command
+    dircfg_on_command
     run declare -F
     assert_output --partial 'declare -f test1'
     assert_equal "$HISTFILE" "$hist"
 
     dircfg deactivate
-    on-command
+    dircfg_on_command
     run declare -F
     refute_output --partial 'declare -f test1'
     assert_equal "$HISTFILE" "$ROOT_HISTFILE"
@@ -184,10 +184,10 @@ setup() {
         | echo test1
         |}
     ")
-    on-command
+    dircfg_on_command
     
     dircfg reactivate
-    on-command
+    dircfg_on_command
     #assert_output "Configuration $temp/.dircfg reactivated"
     assert_equal "$HISTFILE" "$hist"
     run declare -F

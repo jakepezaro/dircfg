@@ -25,7 +25,7 @@ setup() {
     history -c
     run history
     assert_output ""
-    on-command
+    dircfg_on_command
     run history
     assert_output "    1  abc"
 }
@@ -37,17 +37,17 @@ setup() {
     history -c
 
     cd "$temp/a"
-    on-command
+    dircfg_on_command
     run history
     assert_output "    1  a"
     
     cd "$temp/a/b"
-    on-command --debug
+    dircfg_on_command --debug
     run history
     assert_output "    1  b"
     
     cd "$temp/a/c"
-    on-command
+    dircfg_on_command
     run history
     assert_output "    1  c"    
 }
@@ -56,7 +56,7 @@ setup() {
     unset PROMPT_COMMAND    
     PROMPT_COMMAND='echo hi'
     load "$project_dir/dircfg-enable.sh"
-    assert_equal 'echo hi; on-command' "$PROMPT_COMMAND"
+    assert_equal 'echo hi; dircfg_on_command' "$PROMPT_COMMAND"
     
 }
 

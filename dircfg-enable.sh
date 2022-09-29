@@ -13,7 +13,7 @@ function debug() {
     fi
 }
 
-function find-dirconfigs() {
+function dircfg_find_configs() {
     i=0
     declare -a cfgs
     path=$(pwd)
@@ -35,7 +35,7 @@ function find-dirconfigs() {
     fi
 }
 
-function find-active-history-file() {
+function dircfg_find_active_history_file() {
     while read cfg; do
         if [ -e "$cfg" ] && grep '^#HISTFILE=' "$cfg" | cut -d '=' -f 2; then
             return 0
@@ -44,13 +44,13 @@ function find-active-history-file() {
     echo "$ROOT_HISTFILE"
 }
 
-function initialise-history-file() {
+function dircfg_initialise_history_file() {
     cfgs="$@"
     old_history="$HISTFILE"
-    new_history=$(echo "$cfgs" | find-active-history-file)
-    debug <<< "initialise-history-file old_history=$old_history cfgs=$cfgs new_history=$new_history"
+    new_history=$(echo "$cfgs" | dircfg_find_active_history_file)
+    debug <<< "dircfg_initialise_history_file old_history=$old_history cfgs=$cfgs new_history=$new_history"
     if [ "$old_history" != "$new_history" ]; then
-        debug <<< "initialise-history-file initialise HISTFILE $new_history"
+        debug <<< "dircfg_initialise_history_file initialise HISTFILE $new_history"
         history -a
         export HISTFILE="$new_history"
         history -c
@@ -149,13 +149,13 @@ function load-functions() {
     unset FUNCTIONS
 }
 
-function on-command() {
+function dircfg_on_command() {
     debug <<< "on-command DIRCFG_LASTDIR=$DIRCFG_LASTDIR PWD=$PWD"
     if [ "$DIRCFG_LASTDIR" != "$PWD" ]; then
         DIRCFG_LASTDIR="$PWD"
-        cfgs=$(find-dirconfigs --reverse)
+        cfgs=$(dircfg_find_configs --reverse)
         debug <<< "on-command configs=[$cfgs]"
-        initialise-history-file "$cfgs"
+        dircfg_initialise_history_file "$cfgs"
         load-functions "$cfgs"
     fi
     debug <<< '-------------------------------------------------'
@@ -175,7 +175,7 @@ function dircfg_help() {
 
 function dircfg_list() {
     echo "HISTFILE=$ROOT_HISTFILE"
-    find-dirconfigs | while read cfg; do
+    dircfg_find_configs | while read cfg; do
         if [ -e "$cfg" ]; then
             echo "$cfg"
             grep '^#HISTFILE=' "$cfg" | sed 's/^#/  /g'
@@ -256,4 +256,4 @@ function dircfg() {
     esac
 }
 
-export PROMPT_COMMAND="$PROMPT_COMMAND; on-command"
+export PROMPT_COMMAND="$PROMPT_COMMAND; dircfg_on_command"
