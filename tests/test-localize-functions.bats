@@ -27,7 +27,7 @@ setup() {
     run declare -F
     assert_output --partial 'declare -f test1'
     assert_output --partial 'declare -f test2'
-    assert_equal "$DIRCFG_FUNCTIONS" " test1 test2"
+    assert_equal "$DIRCFG_FUNCTIONS" "test2 test1"
 }
 
 @test 'remove functions when leaving directory' {
@@ -65,7 +65,7 @@ setup() {
     cd "$temp/a"
     unset DIRCFG_DEBUG
     run on-command
-    assert_output "WARN: function test1 in $cfg not loaded as a function with than name already exists"
+    assert_output "WARN: function 'test1' in $cfg not loaded as a function with than name already exists"
     # cannot check DIRCFG_FUNCTIONS because run executes on-command in a subshell and env var changes are not visible in this shell
 }
 
