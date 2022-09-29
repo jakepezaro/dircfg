@@ -177,6 +177,7 @@ function dircfg() {
             echo '  create     : create an empty .dircfg file in the current directory'
             echo '  reload     : re-load all active dirconfigs'
             echo '  deactivate : deactivate the dirconfig in the current directory'
+            echo '  reactivate : reactivate the dirconfig in the current directory'
             ;;
         'list')
             echo "HISTFILE=$ROOT_HISTFILE"
@@ -216,7 +217,18 @@ function dircfg() {
                 mv "$PWD/.dircfg" "$PWD/.dircfg-inactive"
                 unset DIRCFG_LASTDIR  # force reload            
             fi
-        ;;
+            ;;
+        'reactivate')
+            if [ -e "$PWD/.dircfg" ]; then
+                echo "WARN: config is already active $PWD/.dircfg"
+            elif [ ! -e "$PWD/.dircfg-inactive" ]; then
+                echo "ERROR: no config present in $PWD, try 'dircfg create' instead"
+            else
+                mv "$PWD/.dircfg-inactive" "$PWD/.dircfg"
+                unset DIRCFG_LASTDIR  # force reload
+                echo "Configuration $PWD/.dircfg reactivated"
+            fi
+            ;;
     esac
 }
 

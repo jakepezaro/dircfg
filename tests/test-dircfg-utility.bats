@@ -20,6 +20,7 @@ setup() {
         |  create     : create an empty .dircfg file in the current directory
         |  reload     : re-load all active dirconfigs
         |  deactivate : deactivate the dirconfig in the current directory
+        |  reactivate : reactivate the dirconfig in the current directory
     ')
     run dircfg
     assert_output "$help_string"
@@ -172,6 +173,36 @@ setup() {
     mkfile .dircfg <<< ''
     run dircfg create
     assert_output "WARN: config already exists $temp/.dircfg"
+}
+
+@test 'reactive config' {
+    ROOT_HISTFILE=$(mkfile .root <<< '')
+    hist=$(mkfile .hist <<< '')
+    mkfile .dircfg-inactive <<< $(multiline "
+        |#HISTFILE=$hist
+        |function test1() {
+        | echo test1
+        |}
+    ")
+    on-command
+    
+    dircfg reactivate
+    on-command
+    #assert_output "Configuration $temp/.dircfg reactivated"
+    assert_equal "$HISTFILE" "$hist"
+    run declare -F
+    assert_output --partial 'declare -f test1'
+}
+
+@test 'reactivate warns if config already active' {
+    mkfile .dircfg <<< ''
+    run dircfg reactivate
+    assert_output "WARN: config is already active $temp/.dircfg"    
+}
+
+@test 'reactivate fails when config does not exist' {
+    run dircfg reactivate
+    assert_output "ERROR: no config present in $temp, try 'dircfg create' instead"
 }
 
 teardown() {
