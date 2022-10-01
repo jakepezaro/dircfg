@@ -11,3 +11,7 @@ function mkfile() {
 function multiline() {
     echo "$*" | grep -e '^[ ]*|' | sed 's/^[ ]*|//g'
 }
+
+function sort_list() {
+    echo "$*" | tr ' ' '\n' | sort | tr '\n' ' '
+}

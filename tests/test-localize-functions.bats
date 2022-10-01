@@ -27,7 +27,7 @@ setup() {
     run declare -F
     assert_output --partial 'declare -f test1'
     assert_output --partial 'declare -f test2'
-    assert_equal "$DIRCFG_FUNCTIONS" "test2 test1"
+    assert_equal $(sort_list $DIRCFG_FUNCTIONS) $(sort_list test2 test1)
 }
 
 @test 'remove functions when leaving directory' {
